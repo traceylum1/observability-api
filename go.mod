@@ -1,4 +1,4 @@
-module observability-api
+module github.com/traceylum1/observability-api
 
 go 1.25.3
 
