@@ -25,9 +25,11 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 
 func GetUserInfo(w http.ResponseWriter, r *http.Request) {
 	user_id := chi.URLParam(r, "user_id")
+	w.Header().Set("Content-Type", "text/plain")
 
 	for _, u := range users {
 		if u.UserID == user_id {
+			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(fmt.Sprintf("user found: %s, email: %s", u.Name, u.Email)))
 			return
 		}

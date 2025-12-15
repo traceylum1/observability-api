@@ -14,5 +14,8 @@ func NewRouter() *chi.Mux {
 	r.Get("/user", handlers.GetUser)
 	r.Get("/user/:user_id", handlers.GetUserInfo)
 
+	r.Get("/status", handlers.Live)
+	r.Get("/ready", handlers.Ready)
+
 	return r
 }
