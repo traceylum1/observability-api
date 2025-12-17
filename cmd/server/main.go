@@ -19,6 +19,7 @@ func initLogger() {
 
 func main() {
     r := server.NewRouter()
+
     initLogger()
 
     slog.Info("server started", "port", 3000)

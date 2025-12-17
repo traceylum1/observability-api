@@ -2,17 +2,23 @@ package server
 
 import (
     "github.com/go-chi/chi/v5"
-    "github.com/go-chi/chi/v5/middleware"
+    // chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/traceylum1/observability-api/internal/handlers"
+	"github.com/traceylum1/observability-api/internal/server/middleware"
 )
 
 func NewRouter() *chi.Mux {
 	r := chi.NewRouter()
-	r.Use(middleware.Logger)
+	// r.Use(chiMiddleware.Logger)
+	r.Use(
+        middleware.RequestID, 
+        middleware.Tracing, 
+        middleware.Logging,
+    )
 
 	r.Get("/", handlers.Hello)
 	r.Get("/user", handlers.GetUser)
-	r.Get("/user/:user_id", handlers.GetUserInfo)
+	r.Get("/user/{user_id}", handlers.GetUserInfo)
 
 	r.Get("/status", handlers.Live)
 	r.Get("/ready", handlers.Ready)
