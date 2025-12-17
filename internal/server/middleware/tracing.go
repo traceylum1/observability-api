@@ -3,6 +3,7 @@ package middleware
 import (
 	"net/http"
 	"time"
+	"fmt"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -22,6 +23,8 @@ func Tracing(next http.Handler) http.Handler {
 			r.Method+" "+r.URL.Path,
 			trace.WithSpanKind(trace.SpanKindServer),
 		)
+
+		
 		defer span.End()
 
 		// Add request attributes
@@ -35,6 +38,11 @@ func Tracing(next http.Handler) http.Handler {
 			ResponseWriter: w,
 			status:          http.StatusOK,
 		}
+
+		fmt.Println("Tracing middleware span valid:",
+			span.SpanContext().IsValid(),
+			span.SpanContext().TraceID().String(),
+		)
 
 		// Call next middleware / handler
 		next.ServeHTTP(rec, r.WithContext(ctx))

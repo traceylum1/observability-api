@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 	"time"
-
+	"fmt"
 	"log/slog"
 
 	"go.opentelemetry.io/otel/trace"
@@ -38,6 +38,17 @@ func Logging(next http.Handler) http.Handler {
 		if reqID, ok := r.Context().Value(requestIDKey).(string); ok {
 			logger = logger.With("request_id", reqID)
 		}
+
+		span := trace.SpanFromContext(r.Context())
+		sc := span.SpanContext()
+
+		fmt.Println("=== LOGGING MIDDLEWARE DEBUG ===")
+		fmt.Println("Span type:", fmt.Sprintf("%T", span))
+		fmt.Println("SpanContext valid:", sc.IsValid())
+		fmt.Println("TraceID:", sc.TraceID().String())
+		fmt.Println("SpanID:", sc.SpanID().String())
+		fmt.Println("IsRecording:", span.IsRecording())
+		fmt.Println("================================")
 
 		// Attach trace info if present
 		if span := trace.SpanFromContext(r.Context()); span.SpanContext().IsValid() {
