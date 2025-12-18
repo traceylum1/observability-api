@@ -3,6 +3,7 @@ package server
 import (
     "github.com/go-chi/chi/v5"
     // chiMiddleware "github.com/go-chi/chi/v5/middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/traceylum1/observability-api/internal/handlers"
 	"github.com/traceylum1/observability-api/internal/server/middleware"
 )
@@ -22,6 +23,8 @@ func NewRouter() *chi.Mux {
 
 	r.Get("/status", handlers.Live)
 	r.Get("/ready", handlers.Ready)
+
+	r.Get("/metrics", promhttp.Handler().ServeHTTP)
 
 	return r
 }
