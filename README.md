@@ -4,9 +4,7 @@ A production-ready Go HTTP API demonstrating how to **embed observability direct
 
 This project is intentionally light on business logic and heavy on **production concerns**, serving as a **reference implementation / template** for real-world backend microservices.
 
----
-
-## 🎯 Project Goals
+## Project Goals
 
 The primary goal of this project is to demonstrate how a Go microservice should be **structured and instrumented for production**, including:
 
@@ -24,7 +22,7 @@ Each request produces **correlated logs, metrics, and traces**, allowing operato
 
 ---
 
-## 📦 API Endpoints
+## API Endpoints
 
 | Method | Path          | Description                      |
 |------:|---------------|----------------------------------|
@@ -36,7 +34,7 @@ Each request produces **correlated logs, metrics, and traces**, allowing operato
 
 ---
 
-## 🔍 Observability Features
+## Observability Features
 
 ### Structured Logging
 - JSON-formatted logs  
