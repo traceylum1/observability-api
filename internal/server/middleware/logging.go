@@ -9,26 +9,17 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-type statusRecorder struct {
-	http.ResponseWriter
-	status int
-}
-
-func (r *statusRecorder) WriteHeader(code int) {
-	r.status = code
-	r.ResponseWriter.WriteHeader(code)
-}
 
 func Logging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
-		recorder := &statusRecorder{
+		rec := &statusRecorder{
 			ResponseWriter: w,
 			status: http.StatusOK,
 		}
 
-		next.ServeHTTP(recorder, r)
+		next.ServeHTTP(rec, r)
 
 		duration := time.Since(start)
 
@@ -62,7 +53,7 @@ func Logging(next http.Handler) http.Handler {
 		logger.Info("http request completed",
 			"method", r.Method,
 			"path", r.URL.Path,
-			"status", recorder.status,
+			"status", rec.status,
 			"duration_ms", duration.Milliseconds(),
 		)
 	})

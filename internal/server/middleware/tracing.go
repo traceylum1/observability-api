@@ -11,6 +11,16 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
+type statusRecorder struct {
+	http.ResponseWriter
+	status int
+}
+
+func (r *statusRecorder) WriteHeader(code int) {
+	r.status = code
+	r.ResponseWriter.WriteHeader(code)
+}
+
 var tracer = otel.Tracer("observability-api/http")
 
 func Tracing(next http.Handler) http.Handler {
@@ -36,7 +46,7 @@ func Tracing(next http.Handler) http.Handler {
 		// Wrap response writer to capture status code
 		rec := &statusRecorder{
 			ResponseWriter: w,
-			status:          http.StatusOK,
+			status: http.StatusOK,
 		}
 
 		fmt.Println("Tracing middleware span valid:",

@@ -9,16 +9,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-type statusCapturingResponseWriter struct {
-	http.ResponseWriter
-	status int
-}
-
-func (w *statusCapturingResponseWriter) WriteHeader(code int) {
-	w.status = code
-	w.ResponseWriter.WriteHeader(code)
-}
-
 func routePattern(r *http.Request) string {
 	if rctx := chi.RouteContext(r.Context()); rctx != nil {
 		if pattern := rctx.RoutePattern(); pattern != "" {
@@ -66,18 +56,18 @@ func Metrics(next http.Handler) http.Handler {
 		start := time.Now()
 
 		// Capture status code
-		ww := &statusCapturingResponseWriter{
+		rec := &statusRecorder{
 			ResponseWriter: w,
 			status:         http.StatusOK,
 		}
 
-		next.ServeHTTP(ww, r)
+		next.ServeHTTP(rec, r)
 
 		elapsed := time.Since(start).Seconds()
 
 		route := routePattern(r)
 		method := r.Method
-		status := strconv.Itoa(ww.status)
+		status := strconv.Itoa(rec.status)
 
 		httpRequestsTotal.WithLabelValues(
 			method,
