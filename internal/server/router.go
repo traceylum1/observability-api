@@ -14,7 +14,8 @@ func NewRouter() *chi.Mux {
 	r.Use(
         middleware.RequestID, 
         middleware.Tracing, 
-        middleware.Logging,
+		middleware.Logging,
+		middleware.Metrics,
     )
 
 	r.Get("/", handlers.Hello)

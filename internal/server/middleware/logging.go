@@ -7,12 +7,13 @@ import (
 	"log/slog"
 
 	"go.opentelemetry.io/otel/trace"
+	"github.com/traceylum1/observability-api/internal/observability"
 )
 
 
 func Logging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
+		start, _ := observability.RequestStartFromContext(r.Context())
 
 		rec := &statusRecorder{
 			ResponseWriter: w,
@@ -26,7 +27,7 @@ func Logging(next http.Handler) http.Handler {
 		logger := slog.Default()
 
 		// Attach request ID if present
-		if reqID, ok := r.Context().Value(requestIDKey).(string); ok {
+		if reqID, ok := observability.RequestIDFromContext(r.Context()); ok {
 			logger = logger.With("request_id", reqID)
 		}
 
