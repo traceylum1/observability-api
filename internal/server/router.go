@@ -19,11 +19,12 @@ func NewRouter() *chi.Mux {
     )
 
 	r.Get("/", handlers.Hello)
-	r.Get("/user", handlers.GetUser)
-	r.Get("/user/{user_id}", handlers.GetUserInfo)
+	
+	r.Get("/items", handlers.GetUser)
+	r.Get("/items/{id}", handlers.GetUserInfo)
 
-	r.Get("/status", handlers.Live)
-	r.Get("/ready", handlers.Ready)
+	r.Get("/healthz", handlers.Live)
+	r.Get("/readyz", handlers.Ready)
 
 	r.Get("/metrics", promhttp.Handler().ServeHTTP)
 

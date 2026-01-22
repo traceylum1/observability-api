@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/traceylum1/observability-api/internal/observability"
 )
 
 func routePattern(r *http.Request) string {
@@ -53,7 +54,7 @@ func init() {
 // Metrics instruments incoming HTTP requests.
 func Metrics(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
+		start, _ := observability.RequestStartFromContext(r.Context())
 
 		// Capture status code
 		rec := &statusRecorder{
