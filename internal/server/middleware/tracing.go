@@ -11,15 +11,6 @@ import (
 	"github.com/traceylum1/observability-api/internal/observability"
 )
 
-type statusRecorder struct {
-	http.ResponseWriter
-	status int
-}
-
-func (r *statusRecorder) WriteHeader(code int) {
-	r.status = code
-	r.ResponseWriter.WriteHeader(code)
-}
 
 var tracer = otel.Tracer("observability-api/http")
 
@@ -43,23 +34,22 @@ func Tracing(next http.Handler) http.Handler {
 			attribute.String("http.path", r.URL.Path),
 		)
 
-		// Wrap response writer to capture status code
-		rec := &statusRecorder{
-			ResponseWriter: w,
-			status: http.StatusOK,
-		}
-
 		// Call next middleware / handler
-		next.ServeHTTP(rec, r.WithContext(ctx))
+		next.ServeHTTP(w, r.WithContext(ctx))
 
+		status := 0
+		if rec, ok := w.(*statusRecorder); ok {
+			status = rec.status
+		}
+		
 		// Record response info
 		span.SetAttributes(
-			attribute.Int("http.status_code", rec.status),
+			attribute.Int("http.status_code", status),
 			attribute.Int64("http.duration_ms", time.Since(start).Milliseconds()),
 		)
 
 		// Mark errors
-		if rec.status >= 500 {
+		if status >= 500 {
 			span.SetStatus(codes.Error, "server error")
 		}
 	})

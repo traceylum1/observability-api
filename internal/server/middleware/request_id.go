@@ -9,6 +9,7 @@ import (
 )
 
 
+
 func RequestID(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -22,7 +23,6 @@ func RequestID(next http.Handler) http.Handler {
 
 		ctx = observability.WithRequestID(ctx, reqID)
 		ctx = observability.WithRequestStart(ctx, start)
-
 
 		w.Header().Set("X-Request-ID", reqID)
 		next.ServeHTTP(w, r.WithContext(ctx))

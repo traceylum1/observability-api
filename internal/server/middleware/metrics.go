@@ -10,6 +10,24 @@ import (
 	"github.com/traceylum1/observability-api/internal/observability"
 )
 
+type statusRecorder struct {
+	http.ResponseWriter
+	status int
+}
+
+func (sr *statusRecorder) WriteHeader(code int) {
+	sr.status = code
+	sr.ResponseWriter.WriteHeader(code)
+}
+
+func (sr *statusRecorder) Write(b []byte) (int, error) {
+	if sr.status == 0 {
+		sr.status = http.StatusOK
+	}
+	return sr.ResponseWriter.Write(b)
+}
+
+
 func routePattern(r *http.Request) string {
 	if rctx := chi.RouteContext(r.Context()); rctx != nil {
 		if pattern := rctx.RoutePattern(); pattern != "" {
