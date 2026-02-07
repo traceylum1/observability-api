@@ -6,6 +6,7 @@ import (
     "os"
     "context"
     "log"
+	"time"
 
     "github.com/traceylum1/observability-api/internal/server"
     "go.opentelemetry.io/otel"
@@ -13,35 +14,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.21.0"
-	// "github.com/prometheus/client_golang/prometheus"
-	// "github.com/prometheus/client_golang/prometheus/promhttp"
 )
-
-// type metrics struct {
-// 	cpuTemp  prometheus.Gauge
-// 	hdFailures *prometheus.CounterVec
-// }
-
-// func NewMetrics(reg prometheus.Registerer) *metrics {
-// 	m := &metrics{
-// 		cpuTemp: prometheus.NewGauge(
-// 			prometheus.GaugeOpts{
-// 				Name: "cpu_temperature_celsius",
-// 				Help: "Current temperature of the CPU.",
-// 		}),
-// 		hdFailures: prometheus.NewCounterVec(
-// 			prometheus.CounterOpts{
-// 				Name: "hd_errors_total",
-// 				Help: "Number of hard-disk errors.",
-// 			},
-// 			[]string{"device"},
-// 		),
-// 	}
-// 	reg.MustRegister(m.cpuTemp)
-// 	reg.MustRegister(m.hdFailures)
-// 	return m
-// }
-
 
 func initLogger() {
 	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
@@ -86,17 +59,26 @@ func main() {
 	}
 	defer shutdown(ctx)
 		
-	// // Create a non-global registry.
-	// reg := prometheus.NewRegistry()
-
-	// // Create new metrics and register them using the custom registry.
-	// m := NewMetrics(reg)
-	// // Set values for the new created metrics.
-	// m.cpuTemp.Set(65.3)
-	// m.hdFailures.With(prometheus.Labels{"device":"/dev/sda"}).Inc()
-
-	// http.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{Registry: reg}))
 
     slog.Info("server started", "port", 3000)
-    http.ListenAndServe(":3000", r)
+    server := &http.Server{
+		Addr: ":3000",
+		Handler: r,
+	}
+
+	// ---- Graceful shutdown ----
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// 1. Stop accepting new requests & wait for in-flight
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		slog.Info("server shutdown failed: %v", err)
+	}
+
+	// 2. Flush observability (traces, metrics)
+	if err := shutdownObs(shutdownCtx); err != nil {
+		slog.Info("observability shutdown error: %v", err)
+	}
+
+	slog.Info("server exited cleanly")
 }
