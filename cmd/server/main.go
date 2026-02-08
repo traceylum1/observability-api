@@ -46,6 +46,9 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
+	<-stop
+	log.Println("shutdown signal received")
+
 	// ---- Graceful shutdown ----
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
