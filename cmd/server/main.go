@@ -36,7 +36,7 @@ func main() {
 
 	// ---- Start server ----
 	go func() {
-		log.Println("HTTP server listening on :3000")
+		slog.Info("HTTP server listening on :3000")
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen: %s\n", err)
 		}
@@ -47,7 +47,7 @@ func main() {
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
 	<-stop
-	log.Println("shutdown signal received")
+	slog.Info("shutdown signal received")
 
 	// ---- Graceful shutdown ----
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
