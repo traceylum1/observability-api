@@ -2,6 +2,8 @@ package observability
 
 import (
 	"context"
+	"os"
+	"log/slog"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
@@ -12,6 +14,15 @@ import (
 	// "github.com/prometheus/client_golang/prometheus/promhttp"
 	
 )
+
+func initLogger() {
+	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	})
+
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
+}
 
 func initTracer() (func(context.Context) error, error) {
 	exp, err := stdouttrace.New(
@@ -34,47 +45,19 @@ func initTracer() (func(context.Context) error, error) {
 	return tp.Shutdown, nil
 }
 
-func setupObservability(ctx context.Context) (func(context.Context) error, error) {
+func SetupObservability(ctx context.Context) (func(context.Context) error, error) {
 	tpShutdown, err := initTracer()
 	if err != nil {
 		return nil, err
 	}
+
+	initLogger()
 	
+	return func(ctx context.Context) error {
+		var err1 error
+		if tpShutdown != nil {
+			err1 = tpShutdown(ctx)
+		}
+		return err1
+	}, nil
 }
-
-
-// type metrics struct {
-// 	cpuTemp  prometheus.Gauge
-// 	hdFailures *prometheus.CounterVec
-// }
-
-// func NewMetrics(reg prometheus.Registerer) *metrics {
-// 	m := &metrics{
-// 		cpuTemp: prometheus.NewGauge(
-// 			prometheus.GaugeOpts{
-// 				Name: "cpu_temperature_celsius",
-// 				Help: "Current temperature of the CPU.",
-// 		}),
-// 		hdFailures: prometheus.NewCounterVec(
-// 			prometheus.CounterOpts{
-// 				Name: "hd_errors_total",
-// 				Help: "Number of hard-disk errors.",
-// 			},
-// 			[]string{"device"},
-// 		),
-// 	}
-// 	reg.MustRegister(m.cpuTemp)
-// 	reg.MustRegister(m.hdFailures)
-// 	return m
-// }
-
-	// // Create a non-global registry.
-	// reg := prometheus.NewRegistry()
-
-	// // Create new metrics and register them using the custom registry.
-	// m := NewMetrics(reg)
-	// // Set values for the new created metrics.
-	// m.cpuTemp.Set(65.3)
-	// m.hdFailures.With(prometheus.Labels{"device":"/dev/sda"}).Inc()
-
-	// http.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{Registry: reg}))
